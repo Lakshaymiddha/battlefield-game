@@ -22,22 +22,24 @@ public class BattleFieldGameService {
     private PlayerRepository playerRepo;
     private ShotRepository shotRepo;
     private boolean initialized = false;
-    private String playerAId = "PLAYER_A";
-    private String playerBId = "PLAYER_B";
+    private String firstPlayerId;
+    private String secondPlayerId;
 
-    public void initGame(int N) {
+    public void initGame(int N, String firstPlayerId, String secondPlayerId) {
         if (N < 2) throw new IllegalArgumentException("N must be at least or more than 2");
-        this.shipRepo = new InMemoryShipRepository(N, Arrays.asList(playerAId, playerBId));
+        this.firstPlayerId = firstPlayerId;
+        this.secondPlayerId = secondPlayerId;
+        this.shipRepo = new InMemoryShipRepository(N, Arrays.asList(this.firstPlayerId, this.secondPlayerId));
         this.playerRepo = new InMemoryPlayerRepository();
         this.shotRepo = new InMemoryShotRepository();
         // register players
-        playerRepo.addPlayer(new Player.Builder().id(playerAId).name("PlayerA").build());
-        playerRepo.addPlayer(new Player.Builder().id(playerBId).name("PlayerB").build());
+        playerRepo.addPlayer(new Player.Builder().id(this.firstPlayerId).name("PlayerA").build());
+        playerRepo.addPlayer(new Player.Builder().id(this.secondPlayerId).name("PlayerB").build());
         this.engine = new GameEngine(N, shipRepo, playerRepo, shotRepo);
         // default strategies: A shoots into right half, B shoots into left half
         int mid = N / 2;
-        engine.setStrategies(playerAId, new RandomFireStrategy(mid, N - 1, N));
-        engine.setStrategies(playerBId, new RandomFireStrategy(0, mid - 1, N));
+        engine.setStrategies(this.firstPlayerId, new RandomFireStrategy(mid, N - 1, N));
+        engine.setStrategies(this.secondPlayerId, new RandomFireStrategy(0, mid - 1, N));
         initialized = true;
         System.out.println("Game initialized " + N + "x" + N);
     }
@@ -50,17 +52,22 @@ public class BattleFieldGameService {
      * Adds a ship with top-left coords for both players. Throws checked exceptions on invalid placement/overlap.
      */
     public void addShip(String id, int size, int ax, int ay, int bx, int by)
-            throws InvalidShipPlacementException, OverlapException, GameStateException {
+            throws GameStateException {
         ensureInit();
         // Build ships with factory
         Ship sA = ShipFactory.createSquareShip(id, size, new Position(ax, ay));
         Ship sB = ShipFactory.createSquareShip(id, size, new Position(bx, by));
         // Validate territory (top-left semantics)
-        validateTerritory(sA, playerAId);
-        validateTerritory(sB, playerBId);
-        // add to repo (repo checks bounds & overlap)
-        shipRepo.addShip(playerAId, sA);
-        shipRepo.addShip(playerBId, sB);
+        try {
+            validateTerritory(sA, firstPlayerId);
+            validateTerritory(sB, secondPlayerId);
+            // add to repo (repo checks bounds & overlap)
+            shipRepo.addShip(firstPlayerId, sA);
+            shipRepo.addShip(secondPlayerId, sB);
+        } catch (InvalidShipPlacementException | OverlapException e) {
+            System.err.println("Failed to place ship: " + e);
+            return;
+        }
         System.out.println("Ship " + id + " added for both players");
     }
 
@@ -70,7 +77,7 @@ public class BattleFieldGameService {
         for (Position p : s.getOccupiedPositions()) {
             if (p.getX() < 0 || p.getY() < 0 || p.getX() >= board || p.getY() >= board)
                 throw new InvalidShipPlacementException(s.getId() + " out of board at " + p);
-            if (playerId.equals(playerAId)) {
+            if (playerId.equals(firstPlayerId)) {
                 if (p.getX() > mid - 1)
                     throw new InvalidShipPlacementException(s.getId() + " not in PlayerA territory: " + p);
             } else {
@@ -84,8 +91,8 @@ public class BattleFieldGameService {
         ensureInit();
         int N = engine.getBoardSize();
         Map<org.battleship.model.Position, String> labels = new HashMap<>();
-        shipRepo.listShips(playerAId).forEach(s -> s.getOccupiedPositions().forEach(p -> labels.put(p, "A-" + s.getId())));
-        shipRepo.listShips(playerBId).forEach(s -> s.getOccupiedPositions().forEach(p -> labels.putIfAbsent(p, "B-" + s.getId())));
+        shipRepo.listShips(firstPlayerId).forEach(s -> s.getOccupiedPositions().forEach(p -> labels.put(p, "A-" + s.getId())));
+        shipRepo.listShips(secondPlayerId).forEach(s -> s.getOccupiedPositions().forEach(p -> labels.putIfAbsent(p, "B-" + s.getId())));
         System.out.println("Battlefield view (top row y=" + (N - 1) + "):");
         for (int y = N - 1; y >= 0; y--) {
             StringBuilder sb = new StringBuilder();
@@ -102,17 +109,17 @@ public class BattleFieldGameService {
      */
     public void startGame() throws GameStateException {
         ensureInit();
-        int a = shipRepo.activeShipCount(playerAId);
-        int b = shipRepo.activeShipCount(playerBId);
+        int a = shipRepo.activeShipCount(firstPlayerId);
+        int b = shipRepo.activeShipCount(secondPlayerId);
         if (a == 0 && b == 0) throw new GameStateException("No ships placed");
         if (a != b) throw new GameStateException("Fleets must be equal to start");
         System.out.println("Game started. PlayerA goes first.");
 
         boolean playerATurn = true;
-        while (shipRepo.activeShipCount(playerAId) > 0 && shipRepo.activeShipCount(playerBId) > 0) {
+        while (shipRepo.activeShipCount(firstPlayerId) > 0 && shipRepo.activeShipCount(secondPlayerId) > 0) {
             try {
-                if (playerATurn) engine.fireOnce(playerAId, playerBId, engine.getStrategyForPlayer(playerAId));
-                else engine.fireOnce(playerBId, playerAId, engine.getStrategyForPlayer(playerBId));
+                if (playerATurn) engine.fireOnce(firstPlayerId, secondPlayerId, engine.getStrategyForPlayer(firstPlayerId));
+                else engine.fireOnce(secondPlayerId, firstPlayerId, engine.getStrategyForPlayer(secondPlayerId));
             } catch (DuplicateShotException d) {
                 // strategy should avoid duplicates; if occurs, skip turn
                 System.out.println("Duplicate shot encountered: " + d.getMessage());
@@ -120,8 +127,8 @@ public class BattleFieldGameService {
             playerATurn = !playerATurn;
         }
 
-        int aRem = shipRepo.activeShipCount(playerAId);
-        int bRem = shipRepo.activeShipCount(playerBId);
+        int aRem = shipRepo.activeShipCount(firstPlayerId);
+        int bRem = shipRepo.activeShipCount(secondPlayerId);
         if (aRem == 0 && bRem == 0) System.out.println("GameOver: Draw.");
         else if (bRem == 0) System.out.println("GameOver. PlayerA wins.");
         else if (aRem == 0) System.out.println("GameOver. PlayerB wins.");
@@ -130,5 +137,9 @@ public class BattleFieldGameService {
 
     public void addListener(GameEventListener l) {
         engine.addListener(l);
+    }
+
+    public ShipRepository getShipRepo() {
+        return shipRepo;
     }
 }

@@ -35,37 +35,52 @@ class BattleFieldGameServiceTest {
     }
 
     @Test
+    public void testAddShipWithoutInitThrowsGameStateException() {
+        assertThrows(GameStateException.class, () -> {
+            service.addShip("S5", 2, 0, 0, 1, 1);
+        });
+    }
+
+    @Test
     void initGameCreatesBoard() {
-        service.initGame(6);
+        service.initGame(6, "P1", "P2");
         assertTrue(outContent.toString().contains("Game initialized 6x6"));
     }
 
     @Test
     void addShipValidPlacement() throws Exception {
-        service.initGame(6);
+        service.initGame(6, "P1", "P2");
         service.addShip("S1", 2, 0, 0, 3, 0);
         assertTrue(outContent.toString().contains("Ship S1 added for both players"));
     }
 
     @Test
-    void addShipInvalidTerritoryForPlayerA() {
-        service.initGame(6);
+    void addShipInvalidTerritoryForPlayerA() throws GameStateException {
+        service.initGame(6, "P1", "P2");
         // X=4 is outside PlayerA’s half (0..2)
-        assertThrows(InvalidShipPlacementException.class,
-                () -> service.addShip("S1", 2, 4, 0, 3, 0));
+        service.addShip("S1", 2, 4, 0, 3, 0);
+
+        assertTrue(service.getShipRepo().getShip("P1", "S1").isEmpty(),
+                "Player A should not have any ships when placement is invalid");
+        assertTrue(service.getShipRepo().getShip("P2", "S1").isEmpty(),
+                "Player B should not have any ships when placement is invalid");
     }
 
     @Test
-    void addShipInvalidTerritoryForPlayerB() {
-        service.initGame(6);
+    void addShipInvalidTerritoryForPlayerB() throws GameStateException {
+        service.initGame(6, "P1", "P2");
         // X=1 is outside PlayerB’s half (3..5)
-        assertThrows(InvalidShipPlacementException.class,
-                () -> service.addShip("S1", 2, 0, 0, 1, 0));
+        service.addShip("S1", 2, 0, 0, 1, 0);
+
+        assertTrue(service.getShipRepo().getShip("P1", "S1").isEmpty(),
+                "Player A should not have any ships when placement is invalid");
+        assertTrue(service.getShipRepo().getShip("P2", "S1").isEmpty(),
+                "Player B should not have any ships when placement is invalid");
     }
 
     @Test
     void viewBattleFieldPrintsShips() throws Exception {
-        service.initGame(6);
+        service.initGame(6, "P1", "P2");
         service.addShip("S1", 2, 0, 0, 3, 0);
         service.viewBattleField();
         String output = outContent.toString();
@@ -75,13 +90,13 @@ class BattleFieldGameServiceTest {
 
     @Test
     void startGameFailsWithNoShips() {
-        service.initGame(6);
+        service.initGame(6, "P1", "P2");
         assertThrows(GameStateException.class, () -> service.startGame());
     }
 
     @Test
     void startGameRunsUntilWinner() throws Exception {
-        service.initGame(6);
+        service.initGame(6, "P1", "P2");
         service.addShip("S1", 2, 0, 0, 3, 0);
         service.addShip("S2", 1, 2, 1, 4, 2);
 
@@ -93,7 +108,7 @@ class BattleFieldGameServiceTest {
 
     @Test
     void eventListenerReceivesCallbacks() throws Exception {
-        service.initGame(6);
+        service.initGame(6, "P1", "P2");
         service.addShip("S1", 2, 0, 0, 3, 0);
         service.addShip("S2", 1, 2, 1, 4, 2);
 
@@ -107,7 +122,7 @@ class BattleFieldGameServiceTest {
     @Test
     void testInitAndViewBattleField() {
         BattleFieldGameService service = new BattleFieldGameService();
-        service.initGame(5);
+        service.initGame(5, "P1", "P2");
         assertDoesNotThrow(() -> service.viewBattleField());
     }
 

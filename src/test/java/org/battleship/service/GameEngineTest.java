@@ -7,7 +7,7 @@ import org.battleship.model.Position;
 import org.battleship.model.Ship;
 import org.battleship.model.ShipFactory;
 import org.battleship.repository.*;
-import org.battleship.strategy.FireStrategy;
+import org.battleship.strategy.MissileFireStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +41,7 @@ public class GameEngineTest {
 
     @Test
     void testSetAndGetStrategy() {
-        FireStrategy strategy = (a, d) -> new Position(0, 0);
+        MissileFireStrategy strategy = (a, d) -> new Position(0, 0);
         engine.setStrategies(ATTACKER, strategy);
         assertEquals(strategy, engine.getStrategyForPlayer(ATTACKER));
     }
@@ -49,7 +49,7 @@ public class GameEngineTest {
     @Test
     void testFireOnceMiss() throws Exception {
         // Fire at empty board
-        FireStrategy strategy = (a, d) -> new Position(1, 1);
+        MissileFireStrategy strategy = (a, d) -> new Position(1, 1);
 
         GameEvent event = engine.fireOnce(ATTACKER, DEFENDER, strategy);
 
@@ -64,7 +64,7 @@ public class GameEngineTest {
         Ship ship = ShipFactory.createSquareShip("S1", 1, new Position(2, 2));
         shipRepo.addShip(DEFENDER, ship);
 
-        FireStrategy strategy = (a, d) -> new Position(2, 2);
+        MissileFireStrategy strategy = (a, d) -> new Position(2, 2);
 
         AtomicReference<GameEvent> received = new AtomicReference<>();
         engine.addListener(received::set);
@@ -81,7 +81,7 @@ public class GameEngineTest {
     void testDuplicateShotThrowsException() throws Exception {
         Position pos = new Position(0, 0);
 
-        FireStrategy strategy = (a, d) -> pos;
+        MissileFireStrategy strategy = (a, d) -> pos;
 
         // First shot
         engine.fireOnce(ATTACKER, DEFENDER, strategy);
@@ -99,7 +99,7 @@ public class GameEngineTest {
         engine.addListener(listener);
         engine.removeListener(listener);
 
-        FireStrategy strategy = (a, d) -> new Position(1, 1);
+        MissileFireStrategy strategy = (a, d) -> new Position(1, 1);
         engine.fireOnce(ATTACKER, DEFENDER, strategy);
 
         assertFalse(notified.get(), "Listener should not be notified after removal");

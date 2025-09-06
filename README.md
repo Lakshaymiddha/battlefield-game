@@ -78,7 +78,7 @@ mvn compile
 ## Package the application
 
 ```
-    mvn package
+mvn package
 ```
 
 ## Run application

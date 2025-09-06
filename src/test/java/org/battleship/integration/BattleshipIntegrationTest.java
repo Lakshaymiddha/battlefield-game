@@ -25,7 +25,7 @@ public class BattleshipIntegrationTest {
         capturedEvents = new ArrayList<>();
 
         // Must initialize engine first
-        service.initGame(6);
+        service.initGame(6, "P1", "P2");
 
         // Add listener to capture events
         service.addListener(new GameEventListener() {

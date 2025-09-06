@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * Precomputes all coordinates in given column range and returns them shuffled.
  */
-public class RandomFireStrategy implements FireStrategy {
+public class RandomFireStrategy implements MissileFireStrategy {
     private final Iterator<Position> iter;
     private final Set<Position> used = new HashSet<>();
 
