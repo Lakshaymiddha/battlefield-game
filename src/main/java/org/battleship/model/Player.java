@@ -1,29 +1,49 @@
 package org.battleship.model;
 
-import java.util.*;
-import java.util.List;
-
 /**
- * Player with a name and collection of ships.
- * Uses a builder for clean construction.
+ * Simple player model.
+ * Use Player.Builder to construct.
  */
-public class Player {
+public final class Player {
+    private final String id;
     private final String name;
-    private final Set<Position> firedPositions = new HashSet<>();
 
-    public static final Player PLAYER_A = new Player("PlayerA");
-    public static final Player PLAYER_B = new Player("PlayerB");
-
-    private Player(String name) { this.name = name; }
-
-    public String getName() { return name; }
-
-    public boolean alreadyFiredAt(Position pos) {
-        return firedPositions.contains(pos);
+    private Player(Builder b) {
+        this.id = b.id;
+        this.name = b.name;
     }
 
-    public void recordFire(Position pos) {
-        firedPositions.add(pos);
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public static class Builder {
+        private String id;
+        private String name;
+
+        public Builder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Player build() {
+            if (id == null || id.isEmpty()) throw new IllegalArgumentException("id required");
+            if (name == null || name.isEmpty()) throw new IllegalArgumentException("name required");
+            return new Player(this);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return name + "(" + id + ")";
     }
 }
-

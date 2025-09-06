@@ -7,22 +7,40 @@ import org.battleship.model.Player;
 import java.util.*;
 
 /**
- * Randomized precomputed pool for no-duplicate firing.
+ * Precomputes all coordinates in given column range and returns them shuffled.
  */
-public class RandomFireStrategy implements FireStrategy {
-    private final Iterator<Position> poolIter;
+import java.util.*;
 
+public class RandomFireStrategy implements FireStrategy {
+    private final Iterator<Position> iter;
+    private final Set<Position> used = new HashSet<>();
+
+    /**
+     * @param minCol    inclusive
+     * @param maxCol    inclusive
+     * @param boardSize board size
+     */
     public RandomFireStrategy(int minCol, int maxCol, int boardSize) {
         List<Position> pool = new ArrayList<>();
-        for (int x = minCol; x <= maxCol; x++) for (int y = 0; y < boardSize; y++) pool.add(new Position(x, y));
+        for (int x = minCol; x <= maxCol; x++) {
+            for (int y = 0; y < boardSize; y++) {
+                pool.add(new Position(x, y));
+            }
+        }
         Collections.shuffle(pool, new Random());
-        poolIter = pool.iterator();
+        this.iter = pool.iterator();
     }
 
     @Override
-    public Position next(Player attacker, Player opponent) {
-        if (!poolIter.hasNext()) return null;
-        return poolIter.next();
+    public Position next(String attackerId, String defenderId) {
+        while (iter.hasNext()) {
+            Position candidate = iter.next();
+            if (used.add(candidate)) {
+                // first time we see this -> valid
+                return candidate;
+            }
+        }
+        throw new IllegalStateException("No more targets from strategy");
     }
 }
 

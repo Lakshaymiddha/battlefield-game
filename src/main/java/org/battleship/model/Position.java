@@ -10,6 +10,7 @@ public final class Position {
     private final int y;
 
     public Position(int x, int y) {
+        if (x < 0 || y < 0) throw new IllegalArgumentException("Coordinates must be non-negative");
         this.x = x;
         this.y = y;
     }
@@ -40,4 +41,3 @@ public final class Position {
         return "(" + x + "," + y + ")";
     }
 }
-

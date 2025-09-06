@@ -8,10 +8,6 @@ public final class ShipFactory {
     }
 
     public static Ship createSquareShip(String id, int size, Position topLeft) {
-        return new Ship.Builder()
-                .id(id)
-                .size(size)
-                .topLeft(topLeft)
-                .build();
+        return new Ship.Builder().id(id).size(size).topLeft(topLeft).build();
     }
 }

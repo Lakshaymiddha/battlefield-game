@@ -9,13 +9,13 @@ public final class GameEvent {
     public enum Type {HIT, MISS}
 
     private final Type type;
-    private final String byPlayer;
+    private final String byPlayerId;
     private final Position position;
     private final String destroyedShipId; // nullable
 
-    public GameEvent(Type type, String byPlayer, Position position, String destroyedShipId) {
+    public GameEvent(Type type, String byPlayerId, Position position, String destroyedShipId) {
         this.type = type;
-        this.byPlayer = byPlayer;
+        this.byPlayerId = byPlayerId;
         this.position = position;
         this.destroyedShipId = destroyedShipId;
     }
@@ -24,8 +24,8 @@ public final class GameEvent {
         return type;
     }
 
-    public String getByPlayer() {
-        return byPlayer;
+    public String getByPlayerId() {
+        return byPlayerId;
     }
 
     public Position getPosition() {
@@ -36,3 +36,4 @@ public final class GameEvent {
         return destroyedShipId;
     }
 }
+
