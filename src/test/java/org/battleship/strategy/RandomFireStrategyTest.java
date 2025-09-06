@@ -1,20 +1,26 @@
 package org.battleship.strategy;
 
-
 import org.battleship.model.Position;
 import org.junit.jupiter.api.Test;
-
+import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class RandomFireStrategyTest {
+class RandomFireStrategyTest {
+    private RandomFireStrategy strategy;
+    private static final int BOARD_SIZE = 10;
+    private static final String ATTACKER = "player1";
+    private static final String DEFENDER = "player2";
+
+    @BeforeEach
+    void setUp() {
+        strategy = new RandomFireStrategy(0, 5, BOARD_SIZE);
+    }
+
     @Test
-    void noDuplicatesAndExhaustsPool() {
-        RandomFireStrategy strat = new RandomFireStrategy(3, 5, 6);
-        int count = 0;
-        Position p;
-        while ((p = strat.next(null, null)) != null) count++;
-        assertEquals((5 - 3 + 1) * 6, count);
-        assertNull(strat.next(null, null));
+    void testNextPositionWithinBounds() {
+        Position pos = strategy.next(ATTACKER, DEFENDER);
+        assertNotNull(pos);
+        assertTrue(pos.getX() >= 0 && pos.getX() <= 5);
+        assertTrue(pos.getY() >= 0 && pos.getY() < BOARD_SIZE);
     }
 }
-

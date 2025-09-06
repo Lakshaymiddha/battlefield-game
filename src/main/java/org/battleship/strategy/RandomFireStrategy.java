@@ -2,15 +2,12 @@ package org.battleship.strategy;
 
 
 import org.battleship.model.Position;
-import org.battleship.model.Player;
 
 import java.util.*;
 
 /**
  * Precomputes all coordinates in given column range and returns them shuffled.
  */
-import java.util.*;
-
 public class RandomFireStrategy implements FireStrategy {
     private final Iterator<Position> iter;
     private final Set<Position> used = new HashSet<>();

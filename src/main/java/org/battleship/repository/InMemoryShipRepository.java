@@ -1,6 +1,5 @@
 package org.battleship.repository;
 
-
 import org.battleship.exceptions.InvalidShipPlacementException;
 import org.battleship.exceptions.OverlapException;
 import org.battleship.model.Position;

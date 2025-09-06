@@ -1,7 +1,6 @@
 package org.battleship.repository;
 
 import org.battleship.model.Player;
-
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Optional;
 

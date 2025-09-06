@@ -16,7 +16,7 @@ import java.util.*;
  * Public facade that glues repositories and engine and exposes the required API:
  * initGame(N), addShip(id,size,ax,ay,bx,by), viewBattleField(), startGame()
  */
-public class GameService {
+public class BattleFieldGameService {
     private GameEngine engine;
     private ShipRepository shipRepo;
     private PlayerRepository playerRepo;
@@ -26,8 +26,7 @@ public class GameService {
     private String playerBId = "PLAYER_B";
 
     public void initGame(int N) {
-        if (N < 4 || N > 20) throw new IllegalArgumentException("N must be between 4 and 20");
-        if (N % 2 != 0) throw new IllegalArgumentException("N must be even");
+        if (N < 2) throw new IllegalArgumentException("N must be at least or more than 2");
         this.shipRepo = new InMemoryShipRepository(N, Arrays.asList(playerAId, playerBId));
         this.playerRepo = new InMemoryPlayerRepository();
         this.shotRepo = new InMemoryShotRepository();
@@ -37,10 +36,8 @@ public class GameService {
         this.engine = new GameEngine(N, shipRepo, playerRepo, shotRepo);
         // default strategies: A shoots into right half, B shoots into left half
         int mid = N / 2;
-        engine.setStrategies(playerAId, new RandomFireStrategy(0, mid - 1, N));
+        engine.setStrategies(playerAId, new RandomFireStrategy(mid, N - 1, N));
         engine.setStrategies(playerBId, new RandomFireStrategy(0, mid - 1, N));
-
-//        engine.setStrategies(new RandomFireStrategy(mid, N - 1, N), new RandomFireStrategy(0, mid - 1, N));
         initialized = true;
         System.out.println("Game initialized " + N + "x" + N);
     }

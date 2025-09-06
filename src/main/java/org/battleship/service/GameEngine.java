@@ -35,8 +35,6 @@ public class GameEngine {
     private final PlayerRepository playerRepo;
     private final ShotRepository shotRepo;
     private final int boardSize;
-//    private FireStrategy strategyA;
-//    private FireStrategy strategyB;
     private final Set<GameEventListener> listeners = ConcurrentHashMap.newKeySet();
     private final Map<String, FireStrategy> strategies = new HashMap<>();
 

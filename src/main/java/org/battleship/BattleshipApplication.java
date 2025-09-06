@@ -1,14 +1,15 @@
 package org.battleship;
 
-import org.battleship.exceptions.GameException;
 import org.battleship.event.GameEvent;
 import org.battleship.event.GameEventListener;
-import org.battleship.service.GameService;
+import org.battleship.service.BattleFieldGameService;
 
 public class BattleshipApplication {
+    private static final int N = 7;
+
     public static void main(String[] args) {
-        GameService service = new GameService();
-        service.initGame(6);
+        BattleFieldGameService service = new BattleFieldGameService();
+        service.initGame(N);
 
         // attach a simple event listener
         service.addListener(new GameEventListener() {
@@ -21,9 +22,9 @@ public class BattleshipApplication {
 
         try {
             service.addShip("SH1", 2, 1, 4, 4, 4);
-            service.addShip("SH2", 1, 0, 0, 5, 0);
-        } catch (GameException ge) {
-            System.out.println("Failed to place some ship: " + ge.getMessage());
+            service.addShip("SH2", 1, 0, 0, 5, 6);
+        } catch (Exception e) {
+            System.err.println("Failed to place ship: " + e);
         }
 
         try {
